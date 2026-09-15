@@ -13,6 +13,8 @@ Tests live in two places. Plugin unit specs in `hibernate-filter-plugin/src/test
 
 Current stack: Apache Grails 7.0.16 (`grailsVersion` in each subproject's `gradle.properties`), Spring Boot 3.5, GORM 9, Hibernate 5.6.15 via `org.apache.grails:grails-data-hibernate5` and `org.hibernate:hibernate-core-jakarta`, Groovy 4, Java 17, Gradle 8.14.4 wrapper. Each subproject has its own `buildscript {}` block that imports `org.apache.grails:grails-bom`; there is no `buildSrc` and no `pluginManagement`. All Grails, Spring, and Hibernate versions come from the BOM, so do not pin them.
 
+The example app declares `org.apache.grails:grails-dependencies-starter-web` and `grails-dependencies-test` rather than listing Grails modules by hand. A hand-written list once omitted `grails-layout`, `grails-i18n`, and the `asset-pipeline-grails` runtime taglib. Everything compiled and every test passed, and the HTML pages rendered undecorated with raw `<asset:>` tags. If you touch the example's dependencies, boot it and fetch `/user` as HTML, not only `/user.json`. Details in `hibernate-filter-example/GRAILS7-MIGRATION-PLAN.md`.
+
 Hibernate 5 is deliberate. `HibernateFilterBuilder` uses `TypeResolver.basic()` and the Hibernate 5 `FilterDefinition` constructor, both gone in Hibernate 6, so Grails 7.1+ needs a port of the metadata code first. See `UPGRADE_PLAN.md` §9. Never add `org.hibernate:hibernate-ehcache`: it depends on the non-jakarta `hibernate-core` and puts two copies of Hibernate on the classpath.
 
 The build needs a Java 17 daemon. If Gradle picks up a Java 11 JVM (SDKMAN `current` pointing elsewhere), it fails at configuration with "Run this build using a Java 17 or newer JVM"; set `JAVA_HOME` or `org.gradle.java.home`.
