@@ -9,7 +9,11 @@ A fork of the Grails Hibernate Filter plugin, maintained to track current Grails
 - `hibernate-filter-plugin/` — the published plugin (`org.grails.plugins:hibernate-filter-plugin`). Version lives in its `gradle.properties`.
 - `hibernate-filter-example/` — a Grails app that depends on the plugin via `project(':hibernate-filter-plugin')` and holds **all the meaningful tests**. The plugin itself has no test sources.
 
-Current stack (branch `7.x-upgrade` is for moving beyond this): Grails 6.2.0, Grails Gradle plugin 6.1.2, Hibernate 5.6.x via `org.grails.plugins:hibernate5`, Java 11, Gradle 7.6.4 wrapper. Gradle plugin versions are pinned in `settings.gradle` (pluginManagement) and duplicated in `buildSrc/build.gradle`; change both together.
+Current stack: Apache Grails 7.0.16 (`grailsVersion` in each subproject's `gradle.properties`), Spring Boot 3.5, GORM 9, Hibernate 5.6.15 via `org.apache.grails:grails-data-hibernate5` and `org.hibernate:hibernate-core-jakarta`, Groovy 4, Java 17, Gradle 8.14.4 wrapper. Each subproject has its own `buildscript {}` block that imports `org.apache.grails:grails-bom`; there is no `buildSrc` and no `pluginManagement`. All Grails, Spring, and Hibernate versions come from the BOM, so do not pin them.
+
+Hibernate 5 is deliberate. `HibernateFilterBuilder` uses `TypeResolver.basic()` and the Hibernate 5 `FilterDefinition` constructor, both gone in Hibernate 6, so Grails 7.1+ needs a port of the metadata code first. See `UPGRADE_PLAN.md` §9. Never add `org.hibernate:hibernate-ehcache`: it depends on the non-jakarta `hibernate-core` and puts two copies of Hibernate on the classpath.
+
+The build needs a Java 17 daemon. If Gradle picks up a Java 11 JVM (SDKMAN `current` pointing elsewhere), it fails at configuration with "Run this build using a Java 17 or newer JVM"; set `JAVA_HOME` or `org.gradle.java.home`.
 
 ## Commands
 

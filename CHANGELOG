@@ -1,5 +1,13 @@
 ## Change Log
 
+### 7.0.0-M1
+##### 2026-09-15
+- Upgraded to Apache Grails 7.0.16 (Spring Boot 3.5, GORM 9, Hibernate 5.6.15 jakarta, Groovy 4)
+- Java 17 minimum; Gradle wrapper upgraded to 8.14.4
+- Maven coordinates moved to `org.apache.grails`; build uses `buildscript {}` + grails-bom instead of `buildSrc`
+- Removed unused `hibernate-ehcache` dependency (it pulled the non-jakarta `hibernate-core` onto the classpath)
+- Example app: removed unused Geb/Selenium/webdriver-binaries tooling
+
 ### 0.2.0
 ##### 2016-07-20
 - Upgraded Grails version to 3.1.9

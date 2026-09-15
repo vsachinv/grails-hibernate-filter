@@ -1,6 +1,14 @@
 # Upgrade Plan: grails-hibernate-filter — Grails 6.2.0 → Apache Grails 7.0.16
 
-Status: **plan only, nothing applied.** Prepared 2026-09-15 on branch `7.x-upgrade`, HEAD `8cbbf7c` (tagged `6.0-M1`).
+Status: **applied 2026-09-15** on branch `7.x-upgrade`, starting from HEAD `8cbbf7c` (tagged `6.0-M1`). Plugin compiles with zero source changes, all 19 example tests pass, jar publishes to Maven local, and a `bootRun` smoke test confirmed the default filter hides inactive users on `/user.json`.
+
+Deviations from the plan discovered while applying it:
+
+- **Example app needs `apply plugin: "application"` explicitly.** The Grails 7 `grails-web` Gradle plugin no longer applies it, so the `application { mainClass }` block failed to evaluate without it.
+- **`hibernate-ehcache` removed from the plugin** (was in the plan as BOM-managed). The BOM's `hibernate-ehcache:5.6.15.Final` depends on the non-jakarta `hibernate-core`, which put both Hibernate cores on the runtime classpath. Nothing in the plugin uses ehcache; the matching `region.factory_class` line was removed from the plugin's `application.yml`.
+- **Geb, Selenium, and webdriver-binaries removed from the example app.** No spec uses Geb, and the webdriver-binaries plugin downloads driver metadata from GitHub at configuration time, which fails on restricted networks and blocks the test tasks.
+- **`sourceJar` needs `dependsOn generateGitProperties`.** Gradle 8 task-output validation rejects the implicit use of the generated git properties directory.
+- **Java 17 daemon.** A stale Java 11 Gradle daemon was picked up once and refused to configure the build. `JAVA_HOME` must resolve to a JDK 17+ when invoking `gradlew`.
 
 ## 1. Baseline and target
 
