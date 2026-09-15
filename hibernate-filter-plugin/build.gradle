@@ -51,6 +51,7 @@ dependencies {
     testImplementation "org.apache.grails.testing:grails-testing-support-core"
     testImplementation "org.apache.grails:grails-testing-support-datamapping"
     testImplementation "org.spockframework:spock-core"
+    testImplementation "jakarta.servlet:jakarta.servlet-api"   // Interceptor trait references ServletContext
     testImplementation "net.bytebuddy:byte-buddy"
     testRuntimeOnly    "net.bytebuddy:byte-buddy-agent"
 }

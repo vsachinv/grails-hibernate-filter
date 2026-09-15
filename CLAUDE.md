@@ -7,7 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A fork of the Grails Hibernate Filter plugin, maintained to track current Grails/GORM/Hibernate versions. It lets domain classes declare Hibernate `@FilterDef`-style filters via a `static hibernateFilters = { ... }` closure and toggle them at runtime. Gradle multi-project with two subprojects:
 
 - `hibernate-filter-plugin/` — the published plugin (`org.grails.plugins:hibernate-filter-plugin`). Version lives in its `gradle.properties`.
-- `hibernate-filter-example/` — a Grails app that depends on the plugin via `project(':hibernate-filter-plugin')` and holds **all the meaningful tests**. The plugin itself has no test sources.
+- `hibernate-filter-example/` — a Grails app that depends on the plugin via `project(':hibernate-filter-plugin')`. Its integration specs are the end-to-end proof that filters reach the database.
+
+Tests live in two places. Plugin unit specs in `hibernate-filter-plugin/src/test/groovy/` mock Hibernate's `InFlightMetadataCollector`, `PersistentClass`, and `Session` and cover the DSL builder, second pass, binder, interceptor, utils, and proxy in isolation. `TestFixtures.groovy` there holds `FilteredDomain`, whose static `hibernateFilters` closure is reassigned per feature. Because `DefaultHibernateFiltersHolder` is global static state, every spec clears it in `setup` and `cleanup`.
 
 Current stack: Apache Grails 7.0.16 (`grailsVersion` in each subproject's `gradle.properties`), Spring Boot 3.5, GORM 9, Hibernate 5.6.15 via `org.apache.grails:grails-data-hibernate5` and `org.hibernate:hibernate-core-jakarta`, Groovy 4, Java 17, Gradle 8.14.4 wrapper. Each subproject has its own `buildscript {}` block that imports `org.apache.grails:grails-bom`; there is no `buildSrc` and no `pluginManagement`. All Grails, Spring, and Hibernate versions come from the BOM, so do not pin them.
 
@@ -23,7 +25,9 @@ Run from the repo root.
 ./gradlew hibernate-filter-plugin:jar                 # build plugin jar
 ./gradlew hibernate-filter-plugin:publishToMavenLocal  # publish to ~/.m2 for consumption by other apps
 ./gradlew hibernate-filter-example:bootRun             # run example app (H2 in-memory)
-./gradlew hibernate-filter-example:test                # unit tests (src/test)
+./gradlew hibernate-filter-plugin:test                 # plugin unit specs (mocked Hibernate metadata/session)
+./gradlew hibernate-filter-plugin:test --tests 'org.grails.plugin.hibernate.filter.HibernateFilterBuilderSpec'
+./gradlew hibernate-filter-example:test                # example unit tests (src/test)
 ./gradlew hibernate-filter-example:integrationTest     # integration tests (src/integration-test) — these exercise the plugin
 ./gradlew hibernate-filter-example:integrationTest --tests 'hibernate.filter.example.FilterSpec'
 ./gradlew hibernate-filter-example:integrationTest --tests 'hibernate.filter.example.FilterSpec.testDefaultFilters'
