@@ -77,9 +77,10 @@ class HibernateFilterBuilder {
 
         if (entity == null) {
             if (options.collection && !persistentEntity.isRoot()) {
-                def clazz = persistentEntity.parentEntity
-                while (clazz != Object && !entity) {
-                    entity = mappings.getCollectionBinding("${clazz.name}.$options.collection")
+                PersistentEntity ancestor = persistentEntity.parentEntity
+                while (ancestor != null && !entity) {
+                    entity = mappings.getCollectionBinding("${ancestor.name}.$options.collection")
+                    ancestor = ancestor.parentEntity
                 }
                 if (!entity) {
                     log.warn "Collection $options.collection not found in $persistentEntity.name or any superclass"

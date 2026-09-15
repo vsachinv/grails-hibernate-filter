@@ -9,6 +9,7 @@ import org.hibernate.type.LongType
 import org.hibernate.type.StringType
 import org.hibernate.type.TypeResolver
 import spock.lang.Specification
+import spock.lang.Timeout
 
 /**
  * Exercises the {@code hibernateFilters} DSL: each feature installs a closure on
@@ -211,6 +212,44 @@ class HibernateFilterBuilderSpec extends Specification {
         1 * mappings.getCollectionBinding('com.example.Child.bars') >> null
         1 * mappings.getCollectionBinding("${UnfilteredDomain.name}.bars") >> inherited
         1 * inherited.addFilter('barFilter', 'enabled = true', true, [:], [:])
+    }
+
+    def "a collection is found on a grandparent entity"() {
+        given:
+        Collection inherited = Mock()
+        PersistentEntity grandparent = entity(name: 'com.example.Root')
+        PersistentEntity parent = entity(name: 'com.example.Mid', root: false, parent: grandparent)
+        PersistentEntity child = entity(name: 'com.example.Leaf', root: false, parent: parent)
+        FilteredDomain.hibernateFilters = { barFilter(collection: 'bars', condition: 'enabled = true') }
+
+        when:
+        build(child)
+
+        then:
+        1 * mappings.getCollectionBinding('com.example.Leaf.bars') >> null
+        1 * mappings.getCollectionBinding('com.example.Mid.bars') >> null
+        1 * mappings.getCollectionBinding('com.example.Root.bars') >> inherited
+        1 * inherited.addFilter('barFilter', 'enabled = true', true, [:], [:])
+    }
+
+    @Timeout(5)
+    def "a collection missing on a subclass and every ancestor is skipped instead of looping forever"() {
+        given:
+        PersistentEntity grandparent = entity(name: 'com.example.Root')
+        PersistentEntity parent = entity(name: 'com.example.Mid', root: false, parent: grandparent)
+        PersistentEntity child = entity(name: 'com.example.Leaf', root: false, parent: parent)
+        FilteredDomain.hibernateFilters = { ghost(collection: 'nothing', condition: 'x = 1') }
+
+        when:
+        build(child)
+
+        then:
+        1 * mappings.getCollectionBinding('com.example.Leaf.nothing') >> null
+        1 * mappings.getCollectionBinding('com.example.Mid.nothing') >> null
+        1 * mappings.getCollectionBinding('com.example.Root.nothing') >> null
+        1 * mappings.addFilterDefinition({ FilterDefinition d -> d.filterName == 'ghost' })
+        0 * persistentClass.addFilter(*_)
+        notThrown(Exception)
     }
 
     def "a collection missing on a root entity is skipped after the definition is registered"() {
